@@ -18,20 +18,18 @@
  */
 package at.laborg.briss;
 
-import at.laborg.briss.exception.CropException;
-import at.laborg.briss.gui.HelpDialog;
-import at.laborg.briss.gui.MergedPanel;
-import at.laborg.briss.gui.WrapLayout;
-import at.laborg.briss.model.*;
-import at.laborg.briss.utils.*;
-import com.itextpdf.text.DocumentException;
-import javafx.application.Platform;
-import javafx.embed.swing.JFXPanel;
-import javafx.stage.FileChooser;
-import org.jpedal.exception.PdfException;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Desktop;
+import java.awt.Dialog;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Frame;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
@@ -43,6 +41,47 @@ import java.net.URI;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.JScrollPane;
+import javax.swing.KeyStroke;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+
+import org.jpedal.exception.PdfException;
+
+import com.itextpdf.text.DocumentException;
+
+import at.laborg.briss.exception.CropException;
+import at.laborg.briss.gui.HelpDialog;
+import at.laborg.briss.gui.MergedPanel;
+import at.laborg.briss.gui.WrapLayout;
+import at.laborg.briss.model.ClusterDefinition;
+import at.laborg.briss.model.CropDefinition;
+import at.laborg.briss.model.PageCluster;
+import at.laborg.briss.model.PageExcludes;
+import at.laborg.briss.model.WorkingSet;
+import at.laborg.briss.utils.BrissFileHandling;
+import at.laborg.briss.utils.ClusterCreator;
+import at.laborg.briss.utils.ClusterRenderWorker;
+import at.laborg.briss.utils.DesktopHelper;
+import at.laborg.briss.utils.DocumentCropper;
+import at.laborg.briss.utils.FileDrop;
+import at.laborg.briss.utils.PageNumberParser;
+import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
+import javafx.stage.FileChooser;
 
 /**
  * @author gerhard, hybridtupel
@@ -660,10 +699,10 @@ public class BrissGUI extends JFrame implements PropertyChangeListener, Componen
 
             int totalWorkUnits = clusterDefinition.getNrOfPagesToRender();
             ClusterRenderWorker renderWorker = new ClusterRenderWorker(source, clusterDefinition);
-            renderWorker.start();
-
-            while (renderWorker.isAlive()) {
-                int percent = (int) ((renderWorker.workerUnitCounter / (float) totalWorkUnits) * 100);
+            renderWorker.run();
+            int percent = 0;
+            while (percent <= 100) {
+                percent = (int) ((renderWorker.workerUnitCounter / (float) totalWorkUnits) * 100);
                 setProgress(percent);
                 try {
                     Thread.sleep(50);

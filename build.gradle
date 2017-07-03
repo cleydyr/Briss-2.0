@@ -1,8 +1,24 @@
-apply plugin: 'java'
+project.ext {
+    aspectjVersion = '1.8.4'
+}
+
+apply plugin: 'aspectj'
 apply plugin: 'application'
 
 mainClassName = 'at.laborg.briss.Briss'
 applicationDefaultJvmArgs = ["-Xms128m", "-Xmx1024m"]
+
+buildscript {
+    repositories {
+        maven {
+            url "https://maven.eveoh.nl/content/repositories/releases"
+        }
+    }
+
+    dependencies {
+        classpath "nl.eveoh:gradle-aspectj:1.6"
+    }
+}
 
 repositories {
     maven { url "http://clojars.org/repo" } // For jpedal

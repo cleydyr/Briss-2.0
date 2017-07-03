@@ -54,16 +54,16 @@ public final class BrissCMD {
 		System.out.println("Created " + clusterDefinition.getClusterList().size() + " clusters.");
 
 		ClusterRenderWorker cRW = new ClusterRenderWorker(workDescription.getSourceFile(), clusterDefinition);
-		cRW.start();
+		cRW.run();
 
 		System.out.print("Starting to render clusters.");
-		while (cRW.isAlive()) {
-			System.out.print(".");
-			try {
-				Thread.sleep(500);
-			} catch (InterruptedException e) {
-			}
-		}
+//		while (cRW.isAlive()) {
+//			System.out.print(".");
+//			try {
+//				Thread.sleep(500);
+//			} catch (InterruptedException e) {
+//			}
+//		}
 		System.out.println("finished!");
 		System.out.println("Calculating crop rectangles.");
 		try {

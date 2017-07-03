@@ -12,7 +12,7 @@ import org.jpedal.exception.PdfException;
 import at.laborg.briss.model.ClusterDefinition;
 import at.laborg.briss.model.PageCluster;
 
-public class ClusterRenderWorker extends Thread {
+public class ClusterRenderWorker {
 
 	public int workerUnitCounter = 1;
 	private final File source;
@@ -24,8 +24,7 @@ public class ClusterRenderWorker extends Thread {
 		this.clusters = clusters;
 	}
 
-	@Override
-	public final void run() {
+	public void run() {
 		PdfDecoder pdfDecoder = new PdfDecoder();
 		try {
 			pdfDecoder.openPdfFile(source.getAbsolutePath());
