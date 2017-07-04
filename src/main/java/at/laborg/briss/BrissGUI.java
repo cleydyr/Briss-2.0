@@ -18,20 +18,18 @@
  */
 package at.laborg.briss;
 
-import at.laborg.briss.exception.CropException;
-import at.laborg.briss.gui.HelpDialog;
-import at.laborg.briss.gui.MergedPanel;
-import at.laborg.briss.gui.WrapLayout;
-import at.laborg.briss.model.*;
-import at.laborg.briss.utils.*;
-import com.itextpdf.text.DocumentException;
-import javafx.application.Platform;
-import javafx.embed.swing.JFXPanel;
-import javafx.stage.FileChooser;
-import org.jpedal.exception.PdfException;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Desktop;
+import java.awt.Dialog;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Frame;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
@@ -40,9 +38,44 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.JScrollPane;
+import javax.swing.KeyStroke;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+
+import org.jpedal.exception.PdfException;
+
+import com.itextpdf.text.DocumentException;
+
+import at.laborg.briss.exception.CropException;
+import at.laborg.briss.gui.HelpDialog;
+import at.laborg.briss.gui.MergedPanel;
+import at.laborg.briss.gui.WrapLayout;
+import at.laborg.briss.model.ClusterDefinition;
+import at.laborg.briss.model.PageCluster;
+import at.laborg.briss.model.PageExcludes;
+import at.laborg.briss.model.WorkingSet;
+import at.laborg.briss.utils.BrissFileHandling;
+import at.laborg.briss.utils.ClusterCreator;
+import at.laborg.briss.utils.FileDrop;
+import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
+import javafx.stage.FileChooser;
 
 /**
  * @author gerhard, hybridtupel
@@ -147,14 +180,7 @@ public class BrissGUI extends JFrame implements PropertyChangeListener, Componen
 
         openDonationLinkButton = new JMenuItem(Messages.getString("BrissGUI.donate")); //$NON-NLS-1$
         openDonationLinkButton.addActionListener(a -> {
-            try {
-                if (Desktop.isDesktopSupported()) {
-                    Desktop.getDesktop().browse(URI.create(DONATION_URI));
-                }
-            } catch (IOException e) {
-                // Ignore error
-                e.printStackTrace();
-            }
+            openDonation();
         });
         helpMenu.add(openDonationLinkButton);
 
@@ -218,6 +244,17 @@ public class BrissGUI extends JFrame implements PropertyChangeListener, Componen
         setVisible(true);
     }
 
+	private static void openDonation() {
+		try {
+		    if (Desktop.isDesktopSupported()) {
+		        Desktop.getDesktop().browse(URI.create(DONATION_URI));
+		    }
+		} catch (IOException e) {
+		    // Ignore error
+		    e.printStackTrace();
+		}
+	}
+
     private void startCropping() {
         showSaveFileDialog();
     }
@@ -250,30 +287,6 @@ public class BrissGUI extends JFrame implements PropertyChangeListener, Componen
         return icon;
     }
 
-    private static PageExcludes getExcludedPages() {
-        boolean inputIsValid = false;
-        String previousInput = ""; //$NON-NLS-1$
-
-        // repeat show_dialog until valid input or canceled
-        while (!inputIsValid) {
-            String input = JOptionPane.showInputDialog(Messages.getString("BrissGUI.excludedPagesInfo"), previousInput);
-            previousInput = input;
-
-            if (input == null || input.equals("")) //$NON-NLS-1$
-                return null;
-
-            try {
-                PageExcludes pageExcludes = new PageExcludes(PageNumberParser.parsePageNumber(input));
-                return pageExcludes;
-            } catch (ParseException e) {
-                JOptionPane.showMessageDialog(null, e.getMessage(),
-                        Messages.getString("BrissGUI.inputError"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
-            }
-
-        }
-        return null;
-    }
-
     private void showSaveFileDialog() {
         Platform.runLater(() -> {
             // Open JavaFX file chooser in FX-thread which is not as ugly as the swing one
@@ -282,7 +295,17 @@ public class BrissGUI extends JFrame implements PropertyChangeListener, Componen
             fileChooser.setInitialFileName(BrissFileHandling.getRecommendedFileName(workingSet.getSourceFile()));
             File file = fileChooser.showSaveDialog(null);
             if (file != null) {
-                SwingUtilities.invokeLater(() -> savePDF(file));
+            	setWorkingState(Messages.getString("BrissGUI.loadingPDF")); //$NON-NLS-1$
+                SwingUtilities.invokeLater(() -> {
+                	try {
+                		OperationFacade.cropAndSave(file, workingSet, lastOpenDir);
+                    } catch (IOException | DocumentException | CropException e) {
+                        JOptionPane.showMessageDialog(this, e.getMessage(),
+                                Messages.getString("BrissGUI.croppingError"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
+                    } finally {
+                        setIdleState(); //$NON-NLS-1$
+                    }
+                });
             }
         });
     }
@@ -311,30 +334,10 @@ public class BrissGUI extends JFrame implements PropertyChangeListener, Componen
         }
     }
 
-    private void savePDF(File file) {
-        setWorkingState(Messages.getString("BrissGUI.loadingPDF")); //$NON-NLS-1$
-        try {
-            CropDefinition cropDefinition = CropDefinition.createCropDefinition(workingSet.getSourceFile(),
-                    file, workingSet.getClusterDefinition());
-            File result = DocumentCropper.crop(cropDefinition);
-            if (result != null) {
-                DesktopHelper.openFileWithDesktopApp(result);
-                lastOpenDir = result.getParentFile();
-            }
-
-        } catch (IOException | DocumentException | CropException e) {
-            JOptionPane.showMessageDialog(this, e.getMessage(),
-                    Messages.getString("BrissGUI.croppingError"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
-        } finally {
-            setIdleState(); //$NON-NLS-1$
-        }
-    }
-
     private void showPreview() {
         try {
             setWorkingState(Messages.getString("BrissGUI.createShowPreview")); //$NON-NLS-1$
-            File result = createAndExecuteCropJobForPreview();
-            DesktopHelper.openFileWithDesktopApp(result);
+            OperationFacade.createAndExecuteCropJobForPreview(workingSet);
         } catch (IOException | DocumentException | CropException e) {
             JOptionPane.showMessageDialog(this, e.getMessage(),
                     Messages.getString("BrissGUI.croppingError"), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$
@@ -343,13 +346,6 @@ public class BrissGUI extends JFrame implements PropertyChangeListener, Componen
         }
     }
 
-    private File createAndExecuteCropJobForPreview() throws IOException, DocumentException, CropException {
-        File tmpCropFileDestination = File.createTempFile("briss", ".pdf"); //$NON-NLS-1$ //$NON-NLS-2$
-        CropDefinition cropDefinition = CropDefinition.createCropDefinition(workingSet.getSourceFile(),
-                tmpCropFileDestination, workingSet.getClusterDefinition());
-        File result = DocumentCropper.crop(cropDefinition);
-        return result;
-    }
 
     private void setIdleState() {
         progressBar.setVisible(false);
@@ -373,72 +369,6 @@ public class BrissGUI extends JFrame implements PropertyChangeListener, Componen
         ClusterPagesTask clusterTask = new ClusterPagesTask(loadFile, null);
         clusterTask.addPropertyChangeListener(this);
         clusterTask.execute();
-    }
-
-    private void reloadWithOtherExcludes() throws IOException, PdfException {
-        previewPanel.removeAll();
-        progressBar.setString(Messages.getString("BrissGUI.reloadingFile")); //$NON-NLS-1$
-        ClusterPagesTask clusterTask = new ClusterPagesTask(workingSet.getSourceFile(), getExcludedPages());
-        clusterTask.addPropertyChangeListener(this);
-        clusterTask.execute();
-    }
-
-    private void maximizeWidthInSelectedRects() {
-        // maximize to width
-        // search for maximum width
-        int maxWidth = -1;
-        for (MergedPanel panel : mergedPanels) {
-            int panelMaxWidth = panel.getWidestSelectedRect();
-            if (maxWidth < panelMaxWidth) {
-                maxWidth = panelMaxWidth;
-            }
-        }
-        // set maximum width to all rectangles
-        if (maxWidth == -1)
-            return;
-        for (MergedPanel mp : mergedPanels) {
-            mp.setSelCropWidth(maxWidth);
-        }
-    }
-
-    private void maximizeHeightInSelectedRects() {
-        // maximize to height
-        // search for maximum height
-        int maxHeight = -1;
-        for (MergedPanel panel : mergedPanels) {
-            int panelMaxHeight = panel.getHeighestSelectedRect();
-            if (maxHeight < panelMaxHeight) {
-                maxHeight = panelMaxHeight;
-            }
-        }
-        // set maximum height to all rectangles
-        if (maxHeight == -1)
-            return;
-        for (MergedPanel mp : mergedPanels) {
-            mp.setSelCropHeight(maxHeight);
-        }
-    }
-
-    private void maximizeSizeInAllRects() {
-        // maximize to width and height for all rectangles
-        // search for maximums
-        int maxWidth = -1;
-        int maxHeight = -1;
-        for (MergedPanel panel : mergedPanels) {
-            Dimension panelMaxSize = panel.getLargestRect();
-            if (maxWidth < panelMaxSize.width) {
-                maxWidth = panelMaxSize.width;
-            }
-            if (maxHeight < panelMaxSize.height) {
-                maxHeight = panelMaxSize.height;
-            }
-        }
-        // set maximum size to all rectangles
-        if ((maxWidth == -1) || (maxHeight == -1))
-            return;
-        for (MergedPanel mp : mergedPanels) {
-            mp.setAllCropSize(maxWidth, maxHeight);
-        }
     }
 
     public void alignSelRects(int x, int y, int w, int h) {
@@ -587,8 +517,7 @@ public class BrissGUI extends JFrame implements PropertyChangeListener, Componen
         previewPanel.removeAll();
         mergedPanels = new ArrayList<MergedPanel>();
 
-        for (PageCluster cluster : workingSet.getClusterDefinition().getClusterList()) {
-            MergedPanel p = new MergedPanel(cluster, this);
+		for (MergedPanel p : generateMergedPanels(workingSet, this)) {
             previewPanel.add(p);
             mergedPanels.add(p);
         }
@@ -604,32 +533,29 @@ public class BrissGUI extends JFrame implements PropertyChangeListener, Componen
         repaint();
     }
 
-    private void updateWorkingSet(ClusterDefinition newClusters, PageExcludes newPageExcludes, File newSource) {
+    private static List<MergedPanel> generateMergedPanels(WorkingSet workingSet, BrissGUI brissGUI) {
+    	List<MergedPanel> mergedPanels = new ArrayList<MergedPanel>();
+    	List<PageCluster> clusterList = workingSet.getClusterDefinition().getClusterList();
+    	for (PageCluster cluster : clusterList) {
+    		mergedPanels.add(new MergedPanel(cluster, brissGUI));
+    	}
+    	return mergedPanels;
+	}
+
+	private void updateWorkingSet(ClusterDefinition newClusters, PageExcludes newPageExcludes, File newSource) {
         if (workingSet == null) {
             // completely new
             workingSet = new WorkingSet(newSource);
         } else if (workingSet.getSourceFile().equals(newSource)) {
             // just reload with other excludes
-            copyCropsToClusters(workingSet.getClusterDefinition(), newClusters);
+            OperationFacade.copyCropsToClusters(workingSet.getClusterDefinition(), newClusters);
         }
         workingSet.setSourceFile(newSource);
         workingSet.setClusters(newClusters);
         workingSet.setPageExcludes(newPageExcludes);
     }
 
-    private void copyCropsToClusters(ClusterDefinition oldClusters, ClusterDefinition newClusters) {
-
-        for (PageCluster newCluster : newClusters.getClusterList()) {
-            for (Integer pageNumber : newCluster.getAllPages()) {
-                PageCluster oldCluster = oldClusters.getSingleCluster(pageNumber);
-                for (Float[] ratios : oldCluster.getRatiosList()) {
-                    newCluster.addRatios(ratios);
-                }
-            }
-        }
-    }
-
-    private class ClusterPagesTask extends SwingWorker<Void, Void> {
+    private class ClusterPagesTask extends SwingWorker<Void, Integer> {
 
         private final File source;
         private final PageExcludes pageExcludes;
@@ -649,30 +575,24 @@ public class BrissGUI extends JFrame implements PropertyChangeListener, Componen
         @Override
         protected Void doInBackground() {
 
-            try {
-                clusterDefinition = ClusterCreator.clusterPages(source, pageExcludes);
-
-            } catch (IOException e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
-                return null;
-            }
-
-            int totalWorkUnits = clusterDefinition.getNrOfPagesToRender();
-            ClusterRenderWorker renderWorker = new ClusterRenderWorker(source, clusterDefinition);
-            renderWorker.start();
-
-            while (renderWorker.isAlive()) {
-                int percent = (int) ((renderWorker.workerUnitCounter / (float) totalWorkUnits) * 100);
-                setProgress(percent);
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                }
-            }
+        	try {
+				clusterDefinition = ClusterCreator.clusterPages(source, pageExcludes);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+            OperationFacade.processClusters(clusterDefinition, source, this::publish);
 
             return null;
         }
+
+        @Override
+        protected void process(List<Integer> chunks) {
+        	for (Integer progress : chunks) {
+        		setProgress(progress);
+        	}
+        }
+		
     }
 
     @Override
