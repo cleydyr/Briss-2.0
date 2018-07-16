@@ -141,21 +141,25 @@ public class ClusterImageData {
 	private static int[][] calculateSdOfImages(final short[][][] imgdata, final int imageCnt) {
 		int width = imgdata.length;
 		int height = imgdata[0].length;
-		int[][] sum = new int[width][height];
-		int[][] mean = new int[width][height];
 		int[][] sd = new int[width][height];
 
 		for (int i = 0; i < width; i++) {
 			for (int j = 0; j < height; j++) {
+				int sum = 0;
+
 				for (int k = 0; k < imageCnt; k++) {
-					sum[i][j] += imgdata[i][j][k];
+					sum += imgdata[i][j][k];
 				}
-				mean[i][j] = sum[i][j] / imageCnt;
-				sum[i][j] = 0;
+
+				int mean = sum / imageCnt;
+
+				sum = 0;
+
 				for (int k = 0; k < imageCnt; k++) {
-					sum[i][j] += (imgdata[i][j][k] - mean[i][j]) * (imgdata[i][j][k] - mean[i][j]);
+					sum += (imgdata[i][j][k] - mean) * (imgdata[i][j][k] - mean);
 				}
-				sd[i][j] = 255 - (int) Math.sqrt(sum[i][j] / imageCnt);
+
+				sd[i][j] = 255 - (int) Math.sqrt(sum / imageCnt);
 			}
 		}
 
