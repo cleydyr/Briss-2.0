@@ -50,6 +50,7 @@ import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.Toolkit;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
@@ -335,8 +336,14 @@ public class BrissSwingGUI implements BrissGUIApp {
 
 	private void setWindowBounds() {
 		GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-		int screenWidth = gd.getDisplayMode().getWidth();
-		int screenHeight = gd.getDisplayMode().getHeight();
+
+		final int dpi = Toolkit.getDefaultToolkit().getScreenResolution();
+
+		final double scale = 96.0 / dpi;
+
+		int screenWidth = (int) (gd.getDisplayMode().getWidth() * scale);
+		int screenHeight = (int) (gd.getDisplayMode().getHeight() * scale);
+
 		mainWindow.setMinimumSize(new Dimension(MIN_WIDTH, MIN_HEIGHT));
 		mainWindow.setPreferredSize(new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT));
 		mainWindow.setLocation(screenWidth / 2 - DEFAULT_WIDTH / 2, screenHeight / 2 - DEFAULT_HEIGHT / 2);
