@@ -1,15 +1,16 @@
 package at.laborg.briss;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-
 import at.laborg.briss.cli.BrissCMD;
 import at.laborg.briss.utils.BrissFileHandling;
+import org.junit.jupiter.api.Test;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
 
 class AutoCropTest {
 
