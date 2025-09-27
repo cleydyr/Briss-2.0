@@ -16,9 +16,9 @@ jobs:
       fail-fast: false
       matrix:
         java-version:
-          - 1.8
-          - 1.11
-          - 1.17
+          - 8.0.462+8
+          - 11.0.28+6
+          - 17.0.16+8
           - 19.0.2+7
     runs-on: ubuntu-latest
     steps:
