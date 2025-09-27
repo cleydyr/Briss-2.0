@@ -19,22 +19,22 @@ package at.laborg.briss.model;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CropJob {
 	private final File source;
 	private final int sourcePageCount;
-	private final HashMap<String, String> sourceMetaInfo;
-	private final List<HashMap<String, Object>> sourceBookmarks;
+	private final Map<String, String> sourceMetaInfo;
+	private final List<Map<String, Object>> sourceBookmarks;
 	private File destinationFile;
 
 	private ClusterCollection clusterCollection;
 
 	private static final String RECOMMENDED_ENDING = "_cropped.pdf";
 
-	public CropJob(File source, int pageCount, HashMap<String, String> metaInfo,
-			List<HashMap<String, Object>> bookmarks) {
+	public CropJob(File source, int pageCount, Map<String, String> metaInfo,
+			List<Map<String, Object>> bookmarks) {
 		super();
 		this.source = source;
 		this.sourcePageCount = pageCount;
@@ -42,11 +42,11 @@ public class CropJob {
 		this.sourceBookmarks = bookmarks;
 	}
 
-	public HashMap<String, String> getSourceMetaInfo() {
+	public Map<String, String> getSourceMetaInfo() {
 		return sourceMetaInfo;
 	}
 
-	public List<HashMap<String, Object>> getSourceBookmarks() {
+	public List<Map<String, Object>> getSourceBookmarks() {
 		return sourceBookmarks;
 	}
 

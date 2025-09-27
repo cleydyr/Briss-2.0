@@ -71,7 +71,7 @@ public final class DocumentCropper {
 			final PdfMetaInformation pdfMetaInformation, String password) throws IOException, DocumentException {
 
 		PdfReader reader = PDFReaderUtil.getPdfReader(cropDefinition.getSourceFile().getAbsolutePath(), password);
-		HashMap<String, String> map = SimpleNamedDestination.getNamedDestination(reader, false);
+		Map<String, String> map = SimpleNamedDestination.getNamedDestination(reader, false);
 		Document document = new Document();
 
 		File resultFile = File.createTempFile("cropped", ".pdf");
@@ -186,8 +186,8 @@ public final class DocumentCropper {
 	private static class PdfMetaInformation {
 
 		private final int sourcePageCount;
-		private final HashMap<String, String> sourceMetaInfo;
-		private final List<HashMap<String, Object>> sourceBookmarks;
+		private final Map<String, String> sourceMetaInfo;
+		private final List<Map<String, Object>> sourceBookmarks;
 
 		public PdfMetaInformation(final File source, String password) throws IOException {
 			PdfReader reader = PDFReaderUtil.getPdfReader(source.getAbsolutePath(), password);
@@ -201,11 +201,11 @@ public final class DocumentCropper {
 			return sourcePageCount;
 		}
 
-		public HashMap<String, String> getSourceMetaInfo() {
+		public Map<String, String> getSourceMetaInfo() {
 			return sourceMetaInfo;
 		}
 
-		public List<HashMap<String, Object>> getSourceBookmarks() {
+		public List<Map<String, Object>> getSourceBookmarks() {
 			return sourceBookmarks;
 		}
 	}

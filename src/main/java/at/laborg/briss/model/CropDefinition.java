@@ -19,11 +19,7 @@ package at.laborg.briss.model;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public final class CropDefinition {
 
@@ -32,7 +28,7 @@ public final class CropDefinition {
 	private final Map<Integer, List<float[]>> pageToCropRectangles;
 
 	private CropDefinition(final File source, final File destination,
-			final HashMap<Integer, List<float[]>> pageToCropRectangles) {
+			final Map<Integer, List<float[]>> pageToCropRectangles) {
 		this.sourceFile = source;
 		this.destinationFile = destination;
 		this.pageToCropRectangles = pageToCropRectangles;
@@ -45,7 +41,7 @@ public final class CropDefinition {
 		if (!source.exists())
 			throw new IllegalArgumentException("Source(" + source.getAbsolutePath() + ") file doesn't exist");
 
-		HashMap<Integer, List<float[]>> pagesToCrops = new HashMap<Integer, List<float[]>>();
+		Map<Integer, List<float[]>> pagesToCrops = new HashMap<>();
 
 		for (PageCluster cluster : clusters.getClusterList()) {
 			for (Integer pageNumber : cluster.getAllPages()) {

@@ -17,14 +17,11 @@
  */
 package at.laborg.briss.model;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class ClusterCollection {
-	private final HashMap<Integer, SingleCluster> pageToClustersMapping;
-	private final HashMap<SingleCluster, List<Integer>> clusterToPagesMapping;
+	private final Map<Integer, SingleCluster> pageToClustersMapping;
+	private final Map<SingleCluster, List<Integer>> clusterToPagesMapping;
 	private boolean dirty;
 
 	public ClusterCollection() {
@@ -43,7 +40,7 @@ public class ClusterCollection {
 		return asSortedList(getClusterToPagesMapping().keySet());
 	}
 
-	public HashMap<SingleCluster, List<Integer>> getClusterToPagesMapping() {
+	public Map<SingleCluster, List<Integer>> getClusterToPagesMapping() {
 		return clusterToPagesMapping;
 	}
 
