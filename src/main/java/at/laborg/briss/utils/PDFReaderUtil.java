@@ -1,7 +1,7 @@
 package at.laborg.briss.utils;
 
-import com.itextpdf.text.exceptions.BadPasswordException;
-import com.itextpdf.text.pdf.PdfReader;
+import org.openpdf.text.exceptions.BadPasswordException;
+import org.openpdf.text.pdf.PdfReader;
 import java.io.IOException;
 
 public class PDFReaderUtil {

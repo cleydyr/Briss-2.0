@@ -20,17 +20,17 @@ package at.laborg.briss;
 import at.laborg.briss.model.ClusterCollection;
 import at.laborg.briss.model.ClusterJob;
 import at.laborg.briss.model.SingleCluster;
-import com.itextpdf.text.Rectangle;
-import com.itextpdf.text.pdf.PdfReader;
+import at.laborg.briss.utils.PDFToImageConverter;
+import org.openpdf.text.Rectangle;
+import org.openpdf.text.pdf.PdfReader;
+
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import org.jpedal.PdfDecoder;
-import org.jpedal.exception.PdfException;
 
 public class ClusterManager {
 
-	public static ClusterJob createClusterJob(File origFile) throws IOException, PdfException {
+	public static ClusterJob createClusterJob(File origFile) throws IOException {
 
 		PdfReader reader = new PdfReader(origFile.getAbsolutePath());
 		ClusterJob clusterJob = new ClusterJob(origFile);
@@ -83,27 +83,17 @@ public class ClusterManager {
 
 		@Override
 		public void run() {
-			PdfDecoder pdfDecoder = new PdfDecoder(true);
-			try {
-				pdfDecoder.openPdfFile(clusterJob.getSource().getAbsolutePath());
-			} catch (PdfException e1) {
-				e1.printStackTrace();
-			}
-
-			for (SingleCluster cluster : clusterJob.getClusterCollection().getAsList()) {
-				for (Integer pageNumber : cluster.getPagesToMerge()) {
-					try {
-						BufferedImage renderedPage = pdfDecoder.getPageAsImage(pageNumber);
-						cluster.getImageData().addImageToPreview(renderedPage);
-						workerUnitCounter++;
-					} catch (PdfException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-			}
-			// now close the reader as it's not used anymore
-			pdfDecoder.closePdfFile();
+            try (PDFToImageConverter converter = new PDFToImageConverter(clusterJob.getSource().getAbsolutePath(), null)) {
+                for (SingleCluster cluster : clusterJob.getClusterCollection().getAsList()) {
+                    for (Integer pageNumber : cluster.getPagesToMerge()) {
+                        BufferedImage renderedPage = converter.getAsImage(pageNumber);
+                        cluster.getImageData().addImageToPreview(renderedPage);
+                        workerUnitCounter++;
+                    }
+                }
+            } catch (Exception e) {
+                // TODO: handle exception
+            }
 		}
 	}
 }

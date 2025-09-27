@@ -22,67 +22,22 @@ import at.laborg.briss.exception.CropException;
 import at.laborg.briss.gui.HelpDialog;
 import at.laborg.briss.gui.MergedPanel;
 import at.laborg.briss.gui.WrapLayout;
-import at.laborg.briss.model.ClusterDefinition;
-import at.laborg.briss.model.CropDefinition;
-import at.laborg.briss.model.PageCluster;
-import at.laborg.briss.model.PageExcludes;
-import at.laborg.briss.model.WorkingSet;
-import at.laborg.briss.utils.BrissFileHandling;
-import at.laborg.briss.utils.ClusterCreator;
-import at.laborg.briss.utils.ClusterRenderWorker;
-import at.laborg.briss.utils.DesktopHelper;
-import at.laborg.briss.utils.DocumentCropper;
-import at.laborg.briss.utils.FileDrop;
-import at.laborg.briss.utils.PageNumberParser;
-import at.laborg.briss.utils.PDFReaderUtil;
-import com.itextpdf.text.DocumentException;
-import java.awt.BorderLayout;
-import java.awt.CardLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Cursor;
-import java.awt.Desktop;
-import java.awt.Dialog;
-import java.awt.Dimension;
-import java.awt.FileDialog;
-import java.awt.FlowLayout;
-import java.awt.Frame;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import at.laborg.briss.model.*;
+import at.laborg.briss.utils.*;
+import org.openpdf.text.DocumentException;
+import org.openpdf.text.pdf.PdfException;
+
+import javax.swing.*;
+import javax.swing.event.AncestorEvent;
+import javax.swing.event.AncestorListener;
+import java.awt.*;
+import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JPasswordField;
-import javax.swing.JProgressBar;
-import javax.swing.JScrollPane;
-import javax.swing.KeyStroke;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.SwingUtilities;
-import javax.swing.SwingWorker;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
-import javax.swing.event.AncestorEvent;
-import javax.swing.event.AncestorListener;
-import org.jpedal.exception.PdfException;
 
 /**
  * @author gerhard, hybridtupel
@@ -409,7 +364,7 @@ public class BrissSwingGUI implements BrissGUIApp {
 		mainWindow.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 	}
 
-	public void importNewPdfFile(File loadFile) throws IOException, PdfException {
+	public void importNewPdfFile(File loadFile) throws IOException {
 		String password = null;
 
 		if (PDFReaderUtil.isEncrypted(loadFile.getAbsolutePath())) {

@@ -27,7 +27,7 @@ import at.laborg.briss.utils.BrissFileHandling;
 import at.laborg.briss.utils.ClusterCreator;
 import at.laborg.briss.utils.ClusterRenderWorker;
 import at.laborg.briss.utils.DocumentCropper;
-import com.itextpdf.text.DocumentException;
+import org.openpdf.text.DocumentException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;

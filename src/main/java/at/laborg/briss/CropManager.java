@@ -20,20 +20,12 @@ package at.laborg.briss;
 import at.laborg.briss.model.ClusterJob;
 import at.laborg.briss.model.CropJob;
 import at.laborg.briss.model.SingleCluster;
-import com.itextpdf.text.Document;
-import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.Rectangle;
-import com.itextpdf.text.pdf.PdfArray;
-import com.itextpdf.text.pdf.PdfDictionary;
-import com.itextpdf.text.pdf.PdfImportedPage;
-import com.itextpdf.text.pdf.PdfName;
-import com.itextpdf.text.pdf.PdfNumber;
-import com.itextpdf.text.pdf.PdfReader;
-import com.itextpdf.text.pdf.PdfSmartCopy;
-import com.itextpdf.text.pdf.PdfStamper;
-import com.itextpdf.text.pdf.SimpleBookmark;
+import org.openpdf.text.Document;
+import org.openpdf.text.DocumentException;
+import org.openpdf.text.Rectangle;
+import org.openpdf.text.pdf.*;
+
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -46,7 +38,7 @@ public class CropManager {
 		if (source != null && source.exists()) {
 			PdfReader reader = new PdfReader(source.getAbsolutePath());
 			CropJob result = new CropJob(source, reader.getNumberOfPages(), reader.getInfo(),
-					SimpleBookmark.getBookmark(reader));
+					SimpleBookmark.getBookmarkList(reader));
 			reader.close();
 			result.setClusterCollection(curClusterJob.getClusterCollection());
 			return result;
@@ -59,7 +51,7 @@ public class CropManager {
 		if (source != null && source.exists()) {
 			PdfReader reader = new PdfReader(source.getAbsolutePath());
 			result = new CropJob(source, reader.getNumberOfPages(), reader.getInfo(),
-					SimpleBookmark.getBookmark(reader));
+					SimpleBookmark.getBookmarkList(reader));
 			reader.close();
 			return result;
 		}
@@ -103,7 +95,7 @@ public class CropManager {
 
 		PdfReader reader = new PdfReader(source.getAbsolutePath());
 		PdfStamper stamper = new PdfStamper(reader, Files.newOutputStream(cropJob.getDestinationFile().toPath()));
-		stamper.setMoreInfo(cropJob.getSourceMetaInfo());
+		stamper.setInfoDictionary(cropJob.getSourceMetaInfo());
 
 		PdfDictionary pageDict;
 		int newPageNumber = 1;
@@ -141,7 +133,7 @@ public class CropManager {
 			int[] range = new int[2];
 			range[0] = newPageNumber - 1;
 			range[1] = cropJob.getSourcePageCount() + (newPageNumber - origPageNumber);
-			SimpleBookmark.shiftPageNumbers(cropJob.getSourceBookmarks(), cluster.getRatiosList().size() - 1, range);
+			SimpleBookmark.shiftPageNumbersInRange(cropJob.getSourceBookmarks(), cluster.getRatiosList().size() - 1, range);
 		}
 		stamper.setOutlines(cropJob.getSourceBookmarks());
 		stamper.close();

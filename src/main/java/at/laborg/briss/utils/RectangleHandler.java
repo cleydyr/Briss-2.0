@@ -1,6 +1,6 @@
 package at.laborg.briss.utils;
 
-import com.itextpdf.text.Rectangle;
+import org.openpdf.text.Rectangle;
 import java.util.List;
 
 public final class RectangleHandler {

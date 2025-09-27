@@ -17,6 +17,9 @@
  */
 package at.laborg.briss;
 
+import org.openpdf.text.pdf.PdfException;
+
+import javax.swing.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -24,8 +27,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import javax.swing.TransferHandler;
-import org.jpedal.exception.PdfException;
 
 final class BrissTransferHandler extends TransferHandler {
 

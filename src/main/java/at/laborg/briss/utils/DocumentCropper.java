@@ -20,20 +20,20 @@ package at.laborg.briss.utils;
 
 import at.laborg.briss.exception.CropException;
 import at.laborg.briss.model.CropDefinition;
-import com.itextpdf.text.Document;
-import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.Rectangle;
-import com.itextpdf.text.pdf.PdfArray;
-import com.itextpdf.text.pdf.PdfDestination;
-import com.itextpdf.text.pdf.PdfDictionary;
-import com.itextpdf.text.pdf.PdfImportedPage;
-import com.itextpdf.text.pdf.PdfName;
-import com.itextpdf.text.pdf.PdfNumber;
-import com.itextpdf.text.pdf.PdfReader;
-import com.itextpdf.text.pdf.PdfSmartCopy;
-import com.itextpdf.text.pdf.PdfStamper;
-import com.itextpdf.text.pdf.SimpleBookmark;
-import com.itextpdf.text.pdf.SimpleNamedDestination;
+import org.openpdf.text.Document;
+import org.openpdf.text.DocumentException;
+import org.openpdf.text.Rectangle;
+import org.openpdf.text.pdf.PdfArray;
+import org.openpdf.text.pdf.PdfDestination;
+import org.openpdf.text.pdf.PdfDictionary;
+import org.openpdf.text.pdf.PdfImportedPage;
+import org.openpdf.text.pdf.PdfName;
+import org.openpdf.text.pdf.PdfNumber;
+import org.openpdf.text.pdf.PdfReader;
+import org.openpdf.text.pdf.PdfSmartCopy;
+import org.openpdf.text.pdf.PdfStamper;
+import org.openpdf.text.pdf.SimpleBookmark;
+import org.openpdf.text.pdf.SimpleNamedDestination;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -71,7 +71,7 @@ public final class DocumentCropper {
 			final PdfMetaInformation pdfMetaInformation, String password) throws IOException, DocumentException {
 
 		PdfReader reader = PDFReaderUtil.getPdfReader(cropDefinition.getSourceFile().getAbsolutePath(), password);
-		Map<String, String> map = SimpleNamedDestination.getNamedDestination(reader, false);
+		Map<Object, Object> map = SimpleNamedDestination.getNamedDestination(reader, false);
 		Document document = new Document();
 
 		File resultFile = File.createTempFile("cropped", ".pdf");
@@ -80,18 +80,18 @@ public final class DocumentCropper {
 			document.open();
 
 			Map<Integer, List<String>> pageNrToDestinations = new HashMap<Integer, List<String>>();
-			for (String single : map.keySet()) {
-				StringTokenizer st = new StringTokenizer(map.get(single), " ");
+			for (Map.Entry<Object, Object> entry : map.entrySet()) {
+				StringTokenizer st = new StringTokenizer((String) entry.getValue(), " ");
 				if (st.hasMoreElements()) {
 					String pageNrString = (String) st.nextElement();
 					int pageNr = Integer.parseInt(pageNrString);
 					List<String> singleList = (pageNrToDestinations.get(pageNr));
 					if (singleList == null) {
 						singleList = new ArrayList<String>();
-						singleList.add(single);
+						singleList.add((String) entry.getKey());
 						pageNrToDestinations.put(pageNr, singleList);
 					} else {
-						singleList.add(single);
+						singleList.add((String) entry.getKey());
 					}
 				}
 			}
@@ -129,7 +129,7 @@ public final class DocumentCropper {
 
 		try (OutputStream outputStream = Files.newOutputStream(cropDefinition.getDestinationFile().toPath())) {
 			PdfStamper stamper = new PdfStamper(reader, outputStream);
-			stamper.setMoreInfo(pdfMetaInformation.getSourceMetaInfo());
+			stamper.setInfoDictionary(pdfMetaInformation.getSourceMetaInfo());
 
 			PdfDictionary pageDict;
 			int newPageNumber = 1;
@@ -165,7 +165,7 @@ public final class DocumentCropper {
 				int[] range = new int[2];
 				range[0] = newPageNumber - 1;
 				range[1] = pdfMetaInformation.getSourcePageCount() + (newPageNumber - sourcePageNumber);
-				SimpleBookmark.shiftPageNumbers(pdfMetaInformation.getSourceBookmarks(), rectangleList.size() - 1,
+				SimpleBookmark.shiftPageNumbersInRange(pdfMetaInformation.getSourceBookmarks(), rectangleList.size() - 1,
 						range);
 			}
 			stamper.setOutlines(pdfMetaInformation.getSourceBookmarks());
@@ -193,7 +193,7 @@ public final class DocumentCropper {
 			PdfReader reader = PDFReaderUtil.getPdfReader(source.getAbsolutePath(), password);
 			this.sourcePageCount = reader.getNumberOfPages();
 			this.sourceMetaInfo = reader.getInfo();
-			this.sourceBookmarks = SimpleBookmark.getBookmark(reader);
+			this.sourceBookmarks = SimpleBookmark.getBookmarkList(reader);
 			reader.close();
 		}
 

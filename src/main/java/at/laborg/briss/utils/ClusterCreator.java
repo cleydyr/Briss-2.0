@@ -21,8 +21,8 @@ package at.laborg.briss.utils;
 import at.laborg.briss.model.ClusterDefinition;
 import at.laborg.briss.model.PageCluster;
 import at.laborg.briss.model.PageExcludes;
-import com.itextpdf.text.Rectangle;
-import com.itextpdf.text.pdf.PdfReader;
+import org.openpdf.text.Rectangle;
+import org.openpdf.text.pdf.PdfReader;
 import java.io.File;
 import java.io.IOException;
 
