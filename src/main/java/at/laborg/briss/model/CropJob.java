@@ -19,7 +19,6 @@ package at.laborg.briss.model;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -34,7 +33,7 @@ public class CropJob {
 
 	private static final String RECOMMENDED_ENDING = "_cropped.pdf";
 
-	public CropJob(File source, int pageCount, HashMap<String, String> metaInfo,
+	public CropJob(File source, int pageCount, Map<String, String> metaInfo,
 			List<Map<String, Object>> bookmarks) {
 		super();
 		this.source = source;
